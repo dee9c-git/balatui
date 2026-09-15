@@ -48,7 +48,6 @@ impl Home {
         ]);
 
         mode_selector.has_focus = true;
-        //mode_selector.title = "Modes (Move with Left/Right)".to_string();
 
         let quick_ops = QuickOptions::new();
 

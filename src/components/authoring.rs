@@ -1,3 +1,7 @@
+/*
+Unused for now, maybe something for the future?
+--------------------------------------------------------------------------------
+
 use std::path::PathBuf;
 
 use super::Component;
@@ -131,3 +135,5 @@ impl Component for AuthoringTools {
         Ok(())
     }
 }
+
+*/

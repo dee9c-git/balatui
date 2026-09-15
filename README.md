@@ -1,35 +1,33 @@
-# balatro-tui
+<div align="center">
+<img alt="Balatui" height="300" src="/assets/thumbnail.png">
 
-A balatro mod manager and helper for the terminal.
+#### Balatro Mod Manager in the terminal
+</div>
 
-Written in Rust with the Ratatui library.
+## About
 
-Currently only supports Linux, but support for Windows (+macos, maybe) is planned.
+This is a fork of [balatro-tui](https://github.com/colonthreeing/balatro-tui) by colonthreeing<br/>
+A balatro mod manager for the terminal.<br/>
+Written in Rust with the [Ratatui](https://ratatui.rs) library.<br/>
+Currently only supports Linux, but support for Windows (+macos, maybe) is planned.<br/>
 
-Uses the [Balatro Mod Index](https://github.com/skyline69/balatro-mod-index) repository for downloading mods.
+## Installation
 
-### Currently implemented
-- Viewing mod list
+
+## Features
 - Launching the game
-- Installing mods from the Balatro Mod Index
+- Viewing/Editing/Reinstalling Mod List
+- Installing mods from sources
 - Installing and updating Lovely
+and more!
 
-### Planned (in order of when they will probably be added)
-- Updating mods
-- Helper scripts for making mods
+## Mod Sources
+- [balatro-mod-index-tiny](https://github.com/frostice482/balatro-mod-index-tiny)
+- [Thunderstore](https://thunderstore.io/c/balatro/)
+
+## Future Plans
 - Windows support (already implemented but untested and uncompiled)
+- Helper scripts for making mods (I don't know if I'll do much with this)
 
-### If people actually want it
-- MacOS support (already somewhat implemented but I am even less confident in it's current state than Windows support.)
-
-### Why?
-
-The traditional Balatro Mod Manager does not have good Linux support. This vexes me as a Linux user.
-So I decided to make my own mod manager from scratch rather than patching BMM to work
-(even though that's also something I did, although they haven't accepted my pull request yet).
-Anyway, TL;DR, much better linux support.
-
-As for why it's a terminal application, I spend a lot of time doing `./run_balatro.sh` in the terminal when I am
-developing mods and having a launcher for that sounded pretty nice to me, plus I wanted to add some extra scripts
-for helping with developing mods (ie, automatically making 2x versions of all textures), which would be much easier
-to use in a terminal rather than as a standalone app. Plus it's *fast* this way, compared to using Tauri.
+## Contributing
+Open an issue if you have some suggestions!
