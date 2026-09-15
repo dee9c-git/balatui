@@ -100,19 +100,17 @@ impl ModlistComponent {
         }
 
         self.mods.iter_mut().for_each(|m| {
-            self.options.options.push(
-                vec![
-                    OptionSelectorText::new(m.name.clone(), Style::default()),
-                    OptionSelectorText::new(
-                        format!(" {} ", m.version.clone()),
-                        Style::default().fg(Color::LightBlue),
-                    ),
-                    OptionSelectorText::new(
-                        format!("by {}", m.author.clone().join(", ")),
-                        Style::default().fg(Color::DarkGray),
-                    ),
-                ], //                Span::styled(format!("{} {} by {:?}", m.name, m.version, m.author), Style::default().fg(Color::Green)),
-            );
+            self.options.options.push(vec![
+                OptionSelectorText::new(m.name.clone(), Style::default()),
+                OptionSelectorText::new(
+                    format!(" {} ", m.version.clone()),
+                    Style::default().fg(Color::LightBlue),
+                ),
+                OptionSelectorText::new(
+                    format!("by {}", m.author.clone().join(", ")),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]);
             if !m.enabled.unwrap_or(true) {
                 self.options
                     .options
