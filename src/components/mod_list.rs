@@ -136,67 +136,60 @@ impl Component for ModlistComponent {
         Ok(())
     }
     fn handle_key_event(&mut self, key: KeyEvent) -> Result<Option<Action>> {
-        match key.code {
-            _ => {
-                self.options.handle_key_event(key)?;
-            }
-        }
+        self.options.handle_key_event(key)?;
         Ok(None)
     }
 
     fn update(&mut self, action: Action) -> Result<Option<Action>> {
-        match action {
-            Action::Tick => {
-                let act = self.local_action_rx.try_recv();
-                if act.is_ok() {
-                    let a = act?;
-                    match a {
-                        Actions::Selected(c) => {
-                            let m = &mut self.mods[c];
-                            m.toggle_enabled();
-                            self.build_options();
-                        }
-                        Actions::Delete(c) => {
-                            let m = &self.mods[c];
-                            if m.force_enable {
-                                log::error!(
-                                    "This mod is marked as force enabled and cannot be deleted!"
-                                );
-                            } else {
-                                match std::fs::remove_dir_all(&m.folder) {
-                                    Ok(_) => {
-                                        log::info!("Deleted {} at {}", m.name, m.folder.display());
-                                        self.mods = ModList::get_local_mods();
-                                        self.build_options();
-                                    }
-                                    Err(e) => {
-                                        log::error!(
-                                            "Failed to delete {} at {}: {}",
-                                            m.name,
-                                            m.folder.display(),
-                                            e
-                                        );
-                                    }
+        if action == Action::Tick {
+            let act = self.local_action_rx.try_recv();
+            if act.is_ok() {
+                let a = act?;
+                match a {
+                    Actions::Selected(c) => {
+                        let m = &mut self.mods[c];
+                        m.toggle_enabled();
+                        self.build_options();
+                    }
+                    Actions::Delete(c) => {
+                        let m = &self.mods[c];
+                        if m.force_enable {
+                            log::error!(
+                                "This mod is marked as force enabled and cannot be deleted!"
+                            );
+                        } else {
+                            match std::fs::remove_dir_all(&m.folder) {
+                                Ok(_) => {
+                                    log::info!("Deleted {} at {}", m.name, m.folder.display());
+                                    self.mods = ModList::get_local_mods();
+                                    self.build_options();
+                                }
+                                Err(e) => {
+                                    log::error!(
+                                        "Failed to delete {} at {}: {}",
+                                        m.name,
+                                        m.folder.display(),
+                                        e
+                                    );
                                 }
                             }
                         }
-                        Actions::Reload => {
-                            self.mods = ModList::get_local_mods();
-                            self.build_options();
+                    }
+                    Actions::Reload => {
+                        self.mods = ModList::get_local_mods();
+                        self.build_options();
 
-                            // remove any other reload requests from action queue
-                            while let Ok(a) = self.local_action_rx.try_recv() {
-                                if let Actions::Reload = a {
-                                } else {
-                                    // put back any other actions
-                                    let _ = self.local_action_tx.send(a);
-                                }
+                        // remove any other reload requests from action queue
+                        while let Ok(a) = self.local_action_rx.try_recv() {
+                            if let Actions::Reload = a {
+                            } else {
+                                // put back any other actions
+                                let _ = self.local_action_tx.send(a);
                             }
                         }
                     }
                 }
             }
-            _ => {}
         }
         Ok(None)
     }
@@ -209,11 +202,6 @@ impl Component for ModlistComponent {
                 .areas(area);
         let mut about = About::new();
         about.draw(frame, about_area)?;
-        /*
-        let [main_area] = Layout::vertical([Constraint::Length(11)])
-            .flex(Flex::Center)
-            .areas(right_area);
-        */
         self.options
             .draw(
                 frame,

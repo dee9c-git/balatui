@@ -92,69 +92,62 @@ impl Component for QuickOptions {
         Ok(())
     }
     fn handle_key_event(&mut self, key: KeyEvent) -> color_eyre::Result<Option<Action>> {
-        match key.code {
-            _ => {
-                if self.launching_balatro {
-                    self.launching_balatro = false;
-                } else {
-                    self.options.handle_key_event(key)?;
-                }
-            }
+        if self.launching_balatro {
+            self.launching_balatro = false;
+        } else {
+            self.options.handle_key_event(key)?;
         }
         Ok(None)
     }
 
     fn update(&mut self, action: Action) -> color_eyre::Result<Option<Action>> {
-        match action {
-            Action::Tick => {
-                let act = self.local_action_rx.try_recv();
-                if act.is_ok() {
-                    let a = act?;
-                    match a {
-                        Actions::Selected(c) => match c {
-                            0 => {
-                                launch_balatro(true).expect("Balatro failed to launch!");
-                                self.launching_balatro = true;
+        if action == Action::Tick {
+            let act = self.local_action_rx.try_recv();
+            if act.is_ok() {
+                let a = act?;
+                match a {
+                    Actions::Selected(c) => match c {
+                        0 => {
+                            launch_balatro(true).expect("Balatro failed to launch!");
+                            self.launching_balatro = true;
+                        }
+                        1 => {
+                            launch_balatro(false).expect("Balatro failed to launch!");
+                            self.launching_balatro = true;
+                        }
+                        2 => open(get_balatro_dir().to_str().unwrap()),
+                        3 => open(get_balatro_appdata_dir().to_str().unwrap()),
+                        4 => open(get_data_dir().to_str().unwrap()),
+                        5 => {
+                            tokio::spawn(async move {
+                                install_lovely().await;
+                            });
+                        }
+                        6 => {
+                            if let Some(tx) = self.action_tx.clone() {
+                                let _ = tx.send(Action::ReinstallMods);
                             }
-                            1 => {
-                                launch_balatro(false).expect("Balatro failed to launch!");
-                                self.launching_balatro = true;
+                        }
+                        7 => {
+                            let url = "https://github.com/dee9c-git/balatui";
+                            if let Err(err) = opener::open(url) {
+                                error!("Failed to open {} :c", err);
+                            } else {
+                                info!("Opened {}", url);
                             }
-                            2 => open(get_balatro_dir().to_str().unwrap()),
-                            3 => open(get_balatro_appdata_dir().to_str().unwrap()),
-                            4 => open(get_data_dir().to_str().unwrap()),
-                            5 => {
-                                tokio::spawn(async move {
-                                    install_lovely().await;
-                                });
-                            }
-                            6 => {
-                                if let Some(tx) = self.action_tx.clone() {
-                                    let _ = tx.send(Action::ReinstallMods);
-                                }
-                            }
-                            7 => {
-                                let url = "https://github.com/dee9c-git/balatui";
-                                if let Err(err) = opener::open(url) {
-                                    error!("Failed to open {} :c", err);
-                                } else {
-                                    info!("Opened {}", url);
-                                }
-                            }
-                            _ => {}
-                        },
-                        Actions::Delete(_) => {}
-                        Actions::Reload => todo!(),
-                    }
+                        }
+                        _ => {}
+                    },
+                    Actions::Delete(_) => {}
+                    Actions::Reload => todo!(),
                 }
             }
-            _ => {}
         }
         Ok(None)
     }
 
     fn draw(&mut self, frame: &mut Frame, area: Rect) -> color_eyre::Result<()> {
-        let (about_len, main_len) = (60, 60);
+        let (about_len, main_len) = (60, 30);
         let [about_area, right_area] =
             Layout::horizontal([Constraint::Length(about_len), Constraint::Length(main_len)])
                 .flex(Flex::SpaceEvenly)
