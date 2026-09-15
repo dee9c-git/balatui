@@ -75,7 +75,7 @@ impl Component for ModDesc {
                 lines
             }
             None => vec![Line::from(Span::styled(
-                "No mods selected",
+                "Blank: Found nothing?",
                 Style::default().fg(Color::DarkGray),
             ))],
         };

@@ -59,10 +59,6 @@ impl QuickOptions {
                 Style::default(),
             )],
             vec![OptionSelectorText::new(
-                "Reinstall/Update All Mods".to_string(),
-                Style::default(),
-            )],
-            vec![OptionSelectorText::new(
                 "Check Out the GitHub".to_string(),
                 Style::default(),
             )],
@@ -124,11 +120,6 @@ impl Component for QuickOptions {
                             });
                         }
                         6 => {
-                            if let Some(tx) = self.action_tx.clone() {
-                                let _ = tx.send(Action::ReinstallMods);
-                            }
-                        }
-                        7 => {
                             let url = "https://github.com/dee9c-git/balatui";
                             if let Err(err) = opener::open(url) {
                                 error!("Failed to open {} :c", err);
