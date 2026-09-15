@@ -80,20 +80,22 @@ impl RemoteModsComponent {
         self.options.options.clear();
 
         self.displayed_mods.iter_mut().for_each(|m| {
-            let source_tag = if m.source == "thunderstore" { " TS" } else { "" };
-            self.options.options.push(
-                vec![
-                    OptionSelectorText::new(m.name.clone(), Style::default()),
-                    OptionSelectorText::new(
-                        format!(" by {}", m.owner.clone()),
-                        Style::default().fg(Color::DarkGray),
-                    ),
-                    OptionSelectorText::new(
-                        source_tag.to_string(),
-                        Style::default().fg(Color::LightMagenta),
-                    ),
-                ], //                Span::styled(format!("{} {} by {:?}", m.name, m.version, m.author), Style::default().fg(Color::Green)),
-            );
+            let source_tag = if m.source == "Thunderstore" {
+                " TS"
+            } else {
+                ""
+            };
+            self.options.options.push(vec![
+                OptionSelectorText::new(m.name.clone(), Style::default()),
+                OptionSelectorText::new(
+                    format!(" by {}", m.owner.clone()),
+                    Style::default().fg(Color::DarkGray),
+                ),
+                OptionSelectorText::new(
+                    source_tag.to_string(),
+                    Style::default().fg(Color::LightMagenta),
+                ),
+            ]);
         });
     }
     fn search(&mut self, query: String) {

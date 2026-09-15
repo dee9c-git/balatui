@@ -67,7 +67,7 @@ pub struct RemoteMod {
 }
 
 fn default_source() -> String {
-    "bmi".to_string()
+    "BMI".to_string()
 }
 
 #[derive(Deserialize)]
@@ -106,38 +106,35 @@ pub fn install_dir(remote: &RemoteMod) -> String {
 
 pub async fn fetch_catalog() -> Vec<RemoteMod> {
     match get(MOD_CATALOG_URL).await {
-        Ok(resp) => {
-            match resp.bytes().await {
-                Ok(bytes) => {
-                    let data: Vec<u8> = if bytes.len() >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b
-                    {
-                        let mut out = Vec::new();
-                        let mut decoder =
-                            flate2::read::GzDecoder::new(std::io::Cursor::new(&bytes[..]));
-                        match std::io::Read::read_to_end(&mut decoder, &mut out) {
-                            Ok(_) => out,
-                            Err(e) => {
-                                error!("Failed to decompress mod catalog: {}", e);
-                                return vec![];
-                            }
+        Ok(resp) => match resp.bytes().await {
+            Ok(bytes) => {
+                let data: Vec<u8> = if bytes.len() >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b {
+                    let mut out = Vec::new();
+                    let mut decoder =
+                        flate2::read::GzDecoder::new(std::io::Cursor::new(&bytes[..]));
+                    match std::io::Read::read_to_end(&mut decoder, &mut out) {
+                        Ok(_) => out,
+                        Err(e) => {
+                            error!("Failed to decompress mod catalog: {}", e);
+                            return vec![];
                         }
-                    } else {
-                        bytes.to_vec()
-                    };
-                    if let Ok(catalog) = serde_json::from_slice::<Vec<RemoteMod>>(&data) {
-                        info!("Fetched {} mods from catalog", catalog.len());
-                        catalog
-                    } else {
-                        error!("Failed to parse mod catalog");
-                        vec![]
                     }
-                }
-                Err(e) => {
-                    error!("Failed to read mod catalog: {}", e);
+                } else {
+                    bytes.to_vec()
+                };
+                if let Ok(catalog) = serde_json::from_slice::<Vec<RemoteMod>>(&data) {
+                    info!("Fetched {} mods from catalog", catalog.len());
+                    catalog
+                } else {
+                    error!("Failed to parse mod catalog");
                     vec![]
                 }
             }
-        }
+            Err(e) => {
+                error!("Failed to read mod catalog: {}", e);
+                vec![]
+            }
+        },
         Err(e) => {
             error!("Failed to fetch mod catalog: {}", e);
             vec![]
@@ -167,7 +164,7 @@ pub async fn fetch_ts_catalog() -> Vec<RemoteMod> {
                             identifier: p.name.clone(),
                             id: p.name.clone(),
                             description: v.description.clone(),
-                            source: "thunderstore".to_string(),
+                            source: "Thunderstore".to_string(),
                             package_url: p.package_url.clone(),
                         })
                     })
@@ -188,11 +185,7 @@ pub async fn fetch_ts_catalog() -> Vec<RemoteMod> {
 }
 
 fn merge_key(m: &RemoteMod) -> String {
-    format!(
-        "{}/{}",
-        m.owner.to_lowercase(),
-        m.name.to_lowercase()
-    )
+    format!("{}/{}", m.owner.to_lowercase(), m.name.to_lowercase())
 }
 
 /// Merges BMI and Thunderstore catalogs into a single list.
@@ -412,8 +405,7 @@ pub async fn reinstall_mod(remote: &RemoteMod, disabled: bool, dir: &str) -> Res
 
     if disabled {
         let ignore = mods_dir.join(dir).join(".lovelyignore");
-        fs::File::create(ignore)
-            .map_err(|e| format!("failed to write .lovelyignore: {}", e))?;
+        fs::File::create(ignore).map_err(|e| format!("failed to write .lovelyignore: {}", e))?;
     }
 
     Ok(())
