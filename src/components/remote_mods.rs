@@ -18,6 +18,7 @@ use crate::action::Action;
 use crate::components::mod_desc::ModDesc;
 use crate::components::mod_search::TextInput;
 use crate::components::option_selector::{Actions, OptionSelector, OptionSelectorText};
+use crate::mods::{ModList, is_same_mod};
 use balatui::RemoteMod;
 
 #[derive(Default)]
@@ -79,13 +80,16 @@ impl RemoteModsComponent {
 
         self.options.options.clear();
 
+        let installed = ModList::get_local_mods();
+
         self.displayed_mods.iter_mut().for_each(|m| {
             let source_tag = if m.source == "Thunderstore" {
                 " TS"
             } else {
                 ""
             };
-            self.options.options.push(vec![
+            let is_installed = installed.iter().any(|l| is_same_mod(l, m));
+            let mut row = vec![
                 OptionSelectorText::new(m.name.clone(), Style::default()),
                 OptionSelectorText::new(
                     format!(" by {}", m.owner.clone()),
@@ -95,7 +99,17 @@ impl RemoteModsComponent {
                     source_tag.to_string(),
                     Style::default().fg(Color::LightMagenta),
                 ),
-            ]);
+            ];
+            if is_installed {
+                row.insert(
+                    1,
+                    OptionSelectorText::new(
+                        " Installed".to_string(),
+                        Style::default().fg(Color::Green),
+                    ),
+                );
+            }
+            self.options.options.push(row);
         });
     }
     fn search(&mut self, query: String) {

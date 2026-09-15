@@ -142,14 +142,6 @@ impl Component for OptionSelector {
             .map(|str| {
                 op_i += 1;
                 let mut lines = vec![];
-                /*
-                if op_i == self.selected + 1 {
-                    lines.push(Span::styled(str[0].text, str[0].style.fg(Color::Green)));
-                } else {
-                    lines.push(Span::styled(str[0].text, str[0].style));
-                }
-                */
-
                 for s in str {
                     lines.push(Span::styled(s.text, s.style));
                 }
