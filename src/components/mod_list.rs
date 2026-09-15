@@ -183,7 +183,6 @@ impl Component for ModlistComponent {
                         while let Ok(a) = self.local_action_rx.try_recv() {
                             if let Actions::Reload = a {
                             } else {
-                                // put back any other actions
                                 let _ = self.local_action_tx.send(a);
                             }
                         }
