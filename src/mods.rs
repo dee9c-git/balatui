@@ -132,7 +132,7 @@ pub fn is_same_mod(local: &Mod, remote: &RemoteMod) -> bool {
     folder_exact || name_author || id_slug || id_exact
 }
 
-#[derive(Default, Debug, Deserialize)]
+#[derive(Default, Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct Mod {
     pub id: String,

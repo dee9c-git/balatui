@@ -1,7 +1,9 @@
 use super::{Component, Eventable};
 use crate::components::about::About;
+use balatui::{RemoteMod, install_dir, reinstall_mod};
 use color_eyre::Result;
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use log::{error, info};
 use notify::recommended_watcher;
 use notify::{Event, RecursiveMode, Watcher};
 use ratatui::layout::Margin;
@@ -16,13 +18,14 @@ use tokio::sync::mpsc::UnboundedSender;
 
 use crate::action::Action;
 use crate::components::option_selector::{Actions, OptionSelector, OptionSelectorText};
-use crate::mods::{Mod, ModList};
+use crate::mods::{Mod, ModList, is_same_mod};
 
 pub struct ModlistComponent {
     pub action_tx: Option<UnboundedSender<Action>>,
     pub has_focus: bool,
     options: OptionSelector,
     mods: Vec<Mod>,
+    catalog: Vec<RemoteMod>,
     local_action_tx: mpsc::UnboundedSender<Actions>,
     local_action_rx: mpsc::UnboundedReceiver<Actions>,
 }
@@ -42,6 +45,7 @@ impl ModlistComponent {
             has_focus: false,
             options: installed_mod_selector,
             mods: mods_ref,
+            catalog: Vec::new(),
             local_action_rx: modlist_rx,
             local_action_tx: modlist_tx,
         };
@@ -91,6 +95,53 @@ impl ModlistComponent {
 
         this
     }
+    pub fn update_catalog(&mut self, catalog: Vec<RemoteMod>) {
+        self.catalog = catalog;
+    }
+    fn upgrade_mod(&self, m: &Mod) {
+        if self.catalog.is_empty() {
+            log::error!("No mod catalog loaded, upgrade impossible.");
+            return;
+        }
+        let m = m.clone();
+        let catalog = self.catalog.clone();
+        tokio::spawn(async move {
+            match catalog.iter().find(|r| is_same_mod(&m, r)) {
+                Some(remote) => {
+                    info!("Reinstalling {}...", remote.name);
+                    let disabled = m.folder.join(".lovelyignore").exists();
+                    let target = install_dir(remote);
+                    let mods_dir = ModList::get_local_mod_dir();
+                    let migrating = m.folder != mods_dir.join(&target);
+                    match reinstall_mod(remote, disabled, &target).await {
+                        Ok(_) => {
+                            if migrating {
+                                match std::fs::remove_dir_all(&m.folder) {
+                                    Ok(_) => info!(
+                                        "Migrated {} to {}",
+                                        m.folder.display(),
+                                        target
+                                    ),
+                                    Err(e) => error!(
+                                        "Failed to remove old folder {}: {}",
+                                        m.folder.display(),
+                                        e
+                                    ),
+                                }
+                            }
+                            info!("{} reinstalled.", remote.name);
+                        }
+                        Err(e) => {
+                            error!("Failed to reinstall {}: {}", remote.name, e)
+                        }
+                    }
+                }
+                None => {
+                    info!("{} not in the index, skipping...", m.name);
+                }
+            }
+        });
+    }
     fn build_options(&mut self) {
         self.mods.sort_by(|a, b| a.name.cmp(&b.name));
 
@@ -134,7 +185,23 @@ impl Component for ModlistComponent {
         Ok(())
     }
     fn handle_key_event(&mut self, key: KeyEvent) -> Result<Option<Action>> {
-        self.options.handle_key_event(key)?;
+        match key.code {
+            KeyCode::Char(c)
+                if (c == 'u' || c == 'U') && key.modifiers.contains(KeyModifiers::SHIFT) =>
+            {
+                if let Some(tx) = self.action_tx.as_ref() {
+                    tx.send(Action::ReinstallMods)?;
+                }
+            }
+            KeyCode::Char('u') => {
+                if let Some(m) = self.mods.get(self.options.selected) {
+                    self.upgrade_mod(m);
+                }
+            }
+            _ => {
+                self.options.handle_key_event(key)?;
+            }
+        }
         Ok(None)
     }
 

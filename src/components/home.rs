@@ -156,6 +156,8 @@ impl Component for Home {
                 if !self.catalog_fetched {
                     self.catalog_fetched = true;
                     self.catalog = load_catalog();
+                    self.installed_mod_selector
+                        .update_catalog(self.catalog.clone());
                     self.remote_mod_selector.update_mods(self.catalog.clone());
                     if let Some(tx) = self.command_tx.clone() {
                         tokio::spawn(async move {
@@ -174,6 +176,7 @@ impl Component for Home {
             }
             Action::CatalogFetched(ref mods) => {
                 self.catalog = mods.clone();
+                self.installed_mod_selector.update_catalog(mods.clone());
                 self.remote_mod_selector.update_mods(mods.clone());
             }
             Action::ReinstallMods => {
@@ -312,10 +315,12 @@ impl Component for Home {
                 keys.push("[Esc: Exit]".to_string());
             }
             1 => {
-                keys.push("[Shift+D: Delete Mod]".to_string());
+                keys.push("[u/U/D: Upgrade Mod/Upgrade All/Delete Mod]".to_string());
                 keys.push("[Enter: Enable/Disable Mod]".to_string());
+                /*
                 keys.push("[Up/Down/Left/Right: Navigate]".to_string());
                 keys.push("[Esc: Exit]".to_string());
+                */
             }
             2 => {
                 keys.push("[Enter: Install Mod]".to_string());
