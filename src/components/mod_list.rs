@@ -54,10 +54,13 @@ impl ModlistComponent {
         this.build_options();
 
         let mod_dir = ModList::get_local_mod_dir().as_path().to_path_buf();
+        if let Err(e) = std::fs::create_dir_all(&mod_dir) {
+            log::error!("Failed to create mod directory {}: {}", mod_dir.display(), e);
+        }
         let local_action_tx_clone = this.local_action_tx.clone();
 
         std::thread::spawn(move || {
-            let mut watcher = recommended_watcher(
+            let mut watcher = match recommended_watcher(
                 move |res: std::result::Result<Event, notify::Error>| match res {
                     Ok(event) => match event {
                         Event {
@@ -80,12 +83,17 @@ impl ModlistComponent {
                         log::error!("watch error: {:?}", e);
                     }
                 },
-            )
-            .expect("Failed to create watcher");
+            ) {
+                Ok(w) => w,
+                Err(e) => {
+                    log::error!("Failed to create watcher: {}", e);
+                    return;
+                }
+            };
 
-            watcher
-                .watch(&mod_dir, RecursiveMode::NonRecursive)
-                .expect("Failed to watch mod directory");
+            if let Err(e) = watcher.watch(&mod_dir, RecursiveMode::NonRecursive) {
+                log::error!("Failed to watch mod directory {}: {}", mod_dir.display(), e);
+            }
 
             // Keep the thread alive
             loop {
