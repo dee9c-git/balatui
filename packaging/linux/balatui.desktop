@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Balatui
+Comment=Balatro mod manager for the terminal
+Exec=balatui
+Icon=balatui
+Terminal=true
+Type=Application
+Categories=Game;Utility;
+Keywords=balatro;mods;manager;
