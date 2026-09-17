@@ -264,14 +264,41 @@ pub fn locate_steam_appdata() -> Option<AppDirs> {
     AppDirs::new(Some("Steam"), false)
 }
 
+pub fn get_steam_install_dir() -> PathBuf {
+    #[cfg(windows)]
+    {
+        use winreg::enums::HKEY_CURRENT_USER;
+        use winreg::RegKey;
+
+        let fallback = PathBuf::from(r"C:\Program Files (x86)\Steam");
+        match RegKey::predef(HKEY_CURRENT_USER)
+            .open_subkey(r"Software\Valve\Steam")
+            .and_then(|key| key.get_value::<String, _>("SteamPath"))
+        {
+            Ok(path) => {
+                let path = PathBuf::from(path.replace("\\\\", "\\").trim());
+                if !path.as_os_str().is_empty() && path.exists() {
+                    path
+                } else {
+                    fallback
+                }
+            }
+            Err(_) => fallback,
+        }
+    }
+    #[cfg(unix)]
+    {
+        locate_steam_appdata()
+            .expect("failed to locate steam")
+            .data_dir
+    }
+}
+
 pub fn get_balatro_dir() -> PathBuf {
-    let mut path = locate_steam_appdata()
-        .expect("failed to locate steam")
-        .data_dir;
-
-    path.extend(["steamapps", "common", "Balatro"]);
-
-    path
+    get_steam_install_dir()
+        .join("steamapps")
+        .join("common")
+        .join("Balatro")
 }
 
 pub fn get_balatro_appdata_dir() -> PathBuf {
@@ -437,38 +464,66 @@ pub async fn install_lovely() {
     info!("Downloading Lovely...");
 
     #[cfg(any(target_os = "windows", target_os = "linux"))]
-    {
+    let dll_name: Option<String> = {
         let file = download_to_tmp("https://github.com/ethangreen-dev/lovely-injector/releases/latest/download/lovely-x86_64-pc-windows-msvc.zip").await;
-
-        let target_path = get_balatro_dir().join("version.dll");
-
-        if target_path.exists() {
-            fs::remove_file(&target_path).expect("failed to remove existing version.dll");
-        }
 
         let mut archive = zip::ZipArchive::new(file.as_file()).expect("failed to open zip archive");
 
-        let mut file = archive
-            .by_name("version.dll")
-            .expect("failed to find version.dll in zip archive");
+        let dlls: Vec<String> = archive
+            .file_names()
+            .map(|name| name.to_string())
+            .filter(|name| name.to_ascii_lowercase().ends_with(".dll"))
+            .collect();
 
-        let mut target_file = File::create(&target_path).expect("failed to create version.dll");
-        std::io::copy(&mut file, &mut target_file)
-            .expect("failed to copy version.dll to target path");
-    }
+        let dll = dlls
+            .iter()
+            .find(|name| name.eq_ignore_ascii_case("version.dll"))
+            .or_else(|| dlls.iter().find(|name| name.eq_ignore_ascii_case("winmm.dll")));
+
+        let Some(dll) = dll else {
+            error!(
+                "Failed to find version.dll or winmm.dll in the lovely archive (found {:?}). Nothing was installed.",
+                dlls
+            );
+            return;
+        };
+
+        let game_dir = get_balatro_dir();
+        for name in ["version.dll", "winmm.dll"] {
+            let stale_path = game_dir.join(name);
+            if stale_path.exists() {
+                fs::remove_file(&stale_path).expect("failed to remove existing lovely dll");
+            }
+        }
+
+        let mut dll_file = archive.by_name(dll).expect("failed to read dll from archive");
+        let target_path = game_dir.join(dll);
+        let mut target_file = File::create(&target_path).expect("failed to create dll file");
+        std::io::copy(&mut dll_file, &mut target_file)
+            .expect("failed to copy dll to target path");
+
+        Some(dll.clone())
+    };
     #[cfg(target_os = "macos")]
-    {
+    let dll_name: Option<String> = {
         unimplemented!()
-    }
+    };
 
     #[cfg(any(target_os = "windows", target_os = "macos"))]
     {
-        info!("Successfully Installed Lovely!")
+        if dll_name.is_some() {
+            info!("Successfully Installed Lovely!")
+        }
     }
     #[cfg(target_os = "linux")]
     {
+        let dll_stem = dll_name
+            .as_deref()
+            .and_then(|name| name.split('.').next())
+            .unwrap_or("version");
         info!(
-            "Successfully Installed Lovely! You may need to set the launch options in Steam to \"WINEDLLOVERRIDES=\"version=n,b\" %command%\""
+            "Successfully Installed Lovely! You may need to set the launch options in Steam to \"WINEDLLOVERRIDES=\"{}=n,b\" %command%\"",
+            dll_stem
         );
     }
 }

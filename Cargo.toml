@@ -55,6 +55,9 @@ nucleo-matcher = "0.3.1"
 notify = "8.2.0"
 
 
+[target.'cfg(windows)'.dependencies]
+winreg = "0.56"
+
 [build-dependencies]
 anyhow = "1.0.90"
 vergen-gix = { version = "10", features = ["build", "cargo"] }
