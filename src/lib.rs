@@ -214,22 +214,44 @@ pub async fn fetch_catalogs() -> Vec<RemoteMod> {
 }
 
 pub fn launch_balatro(disable_console: bool) -> Result<Child, std::io::Error> {
-    #[cfg(unix)]
-    use std::os::unix::process::CommandExt;
-
-    let mut cmd = Command::new("steam");
-    cmd.arg("-applaunch")
-        .arg("2379780")
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
-    if disable_console {
-        cmd.arg("--disable-console");
+    #[cfg(windows)]
+    {
+        let mut cmd = Command::new("steam");
+        cmd.arg("-applaunch")
+            .arg("2379780")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        if disable_console {
+            cmd.arg("--disable-console");
+        }
+        match cmd.spawn() {
+            Ok(child) => Ok(child),
+            Err(_) => Command::new("cmd")
+                .args(["/C", "start", "steam://rungameid/2379780"])
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn(),
+        }
     }
     #[cfg(unix)]
-    cmd.process_group(0);
+    {
+        use std::os::unix::process::CommandExt;
 
-    cmd.spawn()
+        let mut cmd = Command::new("steam");
+        cmd.arg("-applaunch")
+            .arg("2379780")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        if disable_console {
+            cmd.arg("--disable-console");
+        }
+        cmd.process_group(0);
+
+        cmd.spawn()
+    }
 }
 
 pub fn open(path: &str) {
