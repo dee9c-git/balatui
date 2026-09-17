@@ -13,6 +13,12 @@ Currently only supports Linux, but support for Windows (+macos, maybe) is planne
 
 ## Installation
 
+### Linux
+Add the desktop file this way:
+```
+curl -o ~/.local/share/applications/balatui.desktop https://raw.githubusercontent.com/dee9c-git/balatui/main/packaging/linux/balatui.desktop
+```
+
 
 ## Features
 - Launching the game
