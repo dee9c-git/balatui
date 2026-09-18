@@ -1,4 +1,4 @@
-use balatui::{get_balatro_appdata_dir, RemoteMod};
+use balatui::{RemoteMod, get_balatro_appdata_dir};
 use log::error;
 use serde::Deserialize;
 use std::fs::File;
@@ -97,39 +97,16 @@ impl ModList {
     }
 }
 
-fn normalize_ident(s: &str) -> String {
-    s.chars()
-        .map(|c| c.to_lowercase())
-        .flatten()
-        .filter(|c| c.is_alphanumeric())
-        .collect()
-}
-
 pub fn is_same_mod(local: &Mod, remote: &RemoteMod) -> bool {
-    let folder_name = local
-        .folder
-        .file_name()
-        .and_then(|n| n.to_str())
-        .map(str::to_string)
-        .unwrap_or_default();
-
     let author_matches = local.author.iter().any(|a| {
         remote
             .owner
             .split([',', ';'])
             .map(str::trim)
-            .any(|r| r.eq_ignore_ascii_case(a.trim()))
+            .any(|r| r == a.trim())
     });
 
-    let slug = remote.identifier.rsplit('@').next().unwrap_or("");
-
-    let folder_exact = !remote.folder_name.is_empty() && folder_name == remote.folder_name;
-    let name_author =
-        local.name.eq_ignore_ascii_case(&remote.name) && author_matches;
-    let id_slug = normalize_ident(&local.id) == normalize_ident(slug);
-    let id_exact = !remote.id.is_empty() && normalize_ident(&local.id) == normalize_ident(&remote.id);
-
-    folder_exact || name_author || id_slug || id_exact
+    local.name == remote.name && author_matches
 }
 
 #[derive(Default, Debug, Clone, Deserialize)]
