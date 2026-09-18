@@ -14,7 +14,7 @@ use ratatui::layout::{Flex, Offset};
 use ratatui::{prelude::*, widgets::*};
 use std::time::Instant;
 use tokio::sync::mpsc::UnboundedSender;
-use tui_logger::TuiLoggerWidget;
+use tui_logger::{ExtLogRecord, LogFormatter, TuiLoggerWidget};
 
 pub struct Home {
     command_tx: Option<UnboundedSender<Action>>,
@@ -293,15 +293,12 @@ impl Component for Home {
         frame.render_widget(
             TuiLoggerWidget::default()
                 .block(Block::default().padding(Padding::new(3, 3, 0, 0)))
-                .output_level(None)
-                .style_info(Style::default().fg(Color::Blue))
-                .style_warn(Style::default().fg(Color::Yellow))
-                .style_error(Style::default().fg(Color::Red))
-                .style_debug(Style::default().fg(Color::White))
-                .output_file(false)
-                .output_target(false)
-                .output_timestamp(None)
-                .output_line(false),
+                .formatter(Box::new(FlatFormatter {
+                    error: Style::default().fg(Color::Red),
+                    warn: Style::default().fg(Color::Yellow),
+                    info: Style::default().fg(Color::Blue),
+                    debug: Style::default().fg(Color::White),
+                })),
             bottom_line,
         );
         frame.render_widget(Block::default().title(Line::from(">>")), bottom_line);
@@ -336,5 +333,40 @@ impl Component for Home {
             bottom_line.offset(Offset { x: 0, y: -2 }),
         );
         Ok(())
+    }
+}
+
+pub struct FlatFormatter {
+    pub error: Style,
+    pub warn: Style,
+    pub info: Style,
+    pub debug: Style,
+}
+
+impl LogFormatter for FlatFormatter {
+    fn min_width(&self) -> u16 {
+        1
+    }
+
+    fn format(&self, width: usize, evt: &ExtLogRecord) -> Vec<Line<'static>> {
+        let style = match evt.level {
+            log::Level::Error => self.error,
+            log::Level::Warn => self.warn,
+            log::Level::Info => self.info,
+            log::Level::Debug | log::Level::Trace => self.debug,
+        };
+        let width = width.max(1);
+        let msg = evt.msg().lines().next().unwrap_or("");
+        let text = if msg.chars().count() > width {
+            if width < 2 {
+                "…".to_string()
+            } else {
+                let head: String = msg.chars().take(width - 1).collect();
+                format!("{head}…")
+            }
+        } else {
+            msg.to_string()
+        };
+        vec![Line::from(Span::styled(text, style))]
     }
 }
