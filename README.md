@@ -5,20 +5,10 @@
 </div>
 
 ## About
-
 This is a fork of [balatro-tui](https://github.com/colonthreeing/balatro-tui) by colonthreeing<br/>
 A balatro mod manager for the terminal.<br/>
 Written in Rust with the [Ratatui](https://ratatui.rs) library.<br/>
-Currently only supports Linux, but support for Windows (+macos, maybe) is planned.<br/>
-
-## Installation
-
-### Linux
-Add the desktop file this way:
-```
-curl -o ~/.local/share/applications/balatui.desktop https://raw.githubusercontent.com/dee9c-git/balatui/main/packaging/linux/balatui.desktop
-```
-
+Linux release is out now, Windows is planned<br/>
 
 ## Features
 - Launching the game
@@ -27,13 +17,17 @@ curl -o ~/.local/share/applications/balatui.desktop https://raw.githubuserconten
 - Installing and updating Lovely
 and more!
 
+## Installation
+1. Download the latest release from the [releases page](https://github.com/ninc-dev/balatui/releases).
+2. Run the TUI with `balatui`
+3. If this is your first time modding, install Lovely with "Quick Options" > "Install/Update Lovely".
+4. I'd highly recommend getting Steamodded with "Find New Mods" > search "Steamodded" and install with Enter, most mods need this to work.
+
+Now, you can install any mod you want!
+
 ## Mod Sources
 - [balatro-mod-index-tiny](https://github.com/frostice482/balatro-mod-index-tiny)
 - [Thunderstore](https://thunderstore.io/c/balatro/)
-
-## Future Plans
-- Windows support (already implemented but untested and uncompiled)
-- Helper scripts for making mods (I don't know if I'll do much with this)
 
 ## Contributing
 Open an issue if you have some suggestions!

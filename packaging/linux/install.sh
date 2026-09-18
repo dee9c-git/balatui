@@ -33,6 +33,7 @@ command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$
 [[ -f "$dest_icons/index.theme" ]] && gtk-update-icon-cache -q "$dest_icons" || true
 
 echo "Installed $app to $dest_bin/$app"
+echo "Installed desktop file to $dest_desktop/$app.desktop"
 if [[ ":$PATH:" != *":$dest_bin:"* ]]; then
     echo "note: $dest_bin is not in your PATH"
 fi
