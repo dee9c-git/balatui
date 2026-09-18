@@ -2,3 +2,5 @@
 .data/*.log
 .idea/
 /packaging/windows/output
+*.tar.gz*
+*.zip*

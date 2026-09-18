@@ -157,7 +157,7 @@ impl Component for QuickOptions {
                     Line::from("Launching Balatro, please wait...")
                         .style(Style::default())
                         .centered(),
-                    Line::from("   (Press any key to continue)")
+                    Line::from("(Press any key to continue)")
                         .style(Style::default().fg(Color::Gray))
                         .centered(),
                 ])
