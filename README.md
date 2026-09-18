@@ -25,6 +25,10 @@ and more!
 
 Now, you can install any mod you want!
 
+## Usage
+- `balatui`: run the TUI
+- `balatui -i <URL>`: install the mod using your custom URL. You can use right click > Copy link to copy the link in releases or the Download zip button on github. Great for installing a mod not in BMI/Thunderstore.
+
 ## Mod Sources
 - [balatro-mod-index-tiny](https://github.com/frostice482/balatro-mod-index-tiny)
 - [Thunderstore](https://thunderstore.io/c/balatro/)
