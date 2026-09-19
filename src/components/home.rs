@@ -9,7 +9,7 @@ use crate::mods::{ModList, is_same_mod};
 use balatui::{RemoteMod, fetch_catalogs, install_dir, load_catalog, reinstall_mod, save_catalog};
 use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent};
-use log::{error, info};
+use log::{error, info, warn};
 use ratatui::layout::{Flex, Offset};
 use ratatui::{prelude::*, widgets::*};
 use std::time::Instant;
@@ -176,7 +176,7 @@ impl Component for Home {
             }
             Action::CatalogFetched(ref mods) => {
                 if mods.is_empty() {
-                    error!("Failed to refresh catalog, keeping cached version");
+                    warn!("Failed to refresh catalog, you may want to check your internet");
                 } else {
                     self.catalog = mods.clone();
                     self.installed_mod_selector.update_catalog(mods.clone());

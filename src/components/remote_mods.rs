@@ -203,7 +203,10 @@ impl Component for RemoteModsComponent {
                         let temp_file = match download_to_tmp(&*remote_mod.download_url).await {
                             Ok(f) => f,
                             Err(e) => {
-                                error!("Failed to download {}: {}", remote_mod.name, e);
+                                error!(
+                                    "Failed to download {}, perhaps check your internet: {}",
+                                    remote_mod.name, e
+                                );
                                 return;
                             }
                         };
