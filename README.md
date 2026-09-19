@@ -1,15 +1,15 @@
 <div align="center">
-<img alt="Banner" height="300" src="/assets/banner.png">
+<img alt="Banner" height="125" src="/assets/banner.png">
 
-#### Balatro Mod Manager in the terminal
+#### Mod Manager for Balatro in the Terminal
 
 <img alt="Balatui"  src="/assets/balatui.png">
 </div>
 
 ## About
 This is a fork of [balatro-tui](https://github.com/colonthreeing/balatro-tui) by colonthreeing<br/>
-A balatro mod manager for the terminal.<br/>
-Written in Rust with the [Ratatui](https://ratatui.rs) library.<br/>
+A mod manager for balatro in the terminal<br/>
+Written in Rust with the [Ratatui](https://ratatui.rs) library -> Blazingly Fast<br/>
 Supported and tested on Windows and Linux (I don't have a mac)<br/>
 
 ## Features
