@@ -1,7 +1,9 @@
 <div align="center">
-<img alt="Balatui" height="300" src="/assets/thumbnail.png">
+<img alt="Banner" height="300" src="/assets/banner.png">
 
 #### Balatro Mod Manager in the terminal
+
+<img alt="Balatui"  src="/assets/balatui.png">
 </div>
 
 ## About
@@ -28,6 +30,10 @@ Now, you can install any mod you want!
 ## Usage
 - `balatui`: run the TUI
 - `balatui -i <URL>`: install the mod using your custom URL. You can use right click > Copy link to copy the link in releases or the Download zip button on github. Great for installing a mod not in BMI/Thunderstore.
+
+## Build
+- Use `package-linux.sh` to build the linux release.
+- Use `package/windows/build-installer.ps1` to build the windows release.
 
 ## Mod Sources
 - [balatro-mod-index-tiny](https://github.com/frostice482/balatro-mod-index-tiny)
