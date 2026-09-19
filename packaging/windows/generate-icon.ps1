@@ -1,11 +1,11 @@
-# Generates balatui.ico (multi-size) from assets/thumbnail.png.
+# Generates balatui.ico (multi-size) from packaging/icon.png.
 # Pure PowerShell + System.Drawing, no ImageMagick required.
-# The banner is letterboxed (fit + centered) onto a square transparent canvas.
+# The source is fit + centered onto a square transparent canvas (full-bleed).
 #
 # Usage: ./generate-icon.ps1 [-Source <path>] [-Output <path>]
 
 param(
-    [string]$Source = (Join-Path $PSScriptRoot "..\..\assets\thumbnail.png"),
+    [string]$Source = (Join-Path $PSScriptRoot "..\..\packaging\icon.png"),
     [string]$Output = (Join-Path $PSScriptRoot "balatui.ico")
 )
 
@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $Source)) {
 }
 
 $Sizes = @(16, 24, 32, 48, 64, 128, 256)
-$CanvasPadding = 0.10 # pad 10% of canvas so the banner doesn't touch the edges
+$CanvasPadding = 0.0 # full-bleed: the icon is square, no transparent margin
 
 $src = [System.Drawing.Image]::FromFile((Resolve-Path -LiteralPath $Source))
 try {

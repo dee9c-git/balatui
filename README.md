@@ -8,18 +8,18 @@
 This is a fork of [balatro-tui](https://github.com/colonthreeing/balatro-tui) by colonthreeing<br/>
 A balatro mod manager for the terminal.<br/>
 Written in Rust with the [Ratatui](https://ratatui.rs) library.<br/>
-Linux release is out now, Windows is planned<br/>
+Supported and tested on Windows and Linux (I don't have a mac)<br/>
 
 ## Features
 - Launching the game
 - Viewing/Editing/Reinstalling Mod List
 - Installing mods from sources
 - Installing and updating Lovely
-and more!
+<br/>and more!
 
 ## Installation
-1. Download the latest release from the [releases page](https://github.com/ninc-dev/balatui/releases).
-2. Run the TUI with `balatui`
+1. Download/Install the latest release from the [releases page](https://github.com/dee9c-git/balatui/releases).
+2. Run the TUI by launching the application (you can also use `balatui` in a terminal on linux).
 3. If this is your first time modding, install Lovely with "Quick Options" > "Install/Update Lovely".
 4. I'd highly recommend getting Steamodded with "Find New Mods" > search "Steamodded" and install with Enter, most mods need this to work.
 
