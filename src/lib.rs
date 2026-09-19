@@ -28,7 +28,18 @@ pub fn catalog_cache_path() -> PathBuf {
 
 pub fn save_catalog(mods: &[RemoteMod]) {
     if let Ok(json) = serde_json::to_string_pretty(mods) {
-        if let Err(e) = fs::write(catalog_cache_path(), json) {
+        let path = catalog_cache_path();
+        if let Some(parent) = path.parent()
+            && let Err(e) = fs::create_dir_all(parent)
+        {
+            error!(
+                "Failed to create cache directory {}: {}",
+                parent.display(),
+                e
+            );
+            return;
+        }
+        if let Err(e) = fs::write(&path, json) {
             error!("Failed to cache catalog: {}", e);
         }
     }
@@ -329,20 +340,31 @@ pub fn get_balatro_appdata_dir() -> PathBuf {
     }
 }
 
-pub async fn download_to_tmp(url: &str) -> NamedTempFile {
-    let mut tmpfile: NamedTempFile = NamedTempFile::new().unwrap();
+pub async fn download_to_tmp(url: &str) -> Result<NamedTempFile, String> {
+    let mut tmpfile: NamedTempFile =
+        NamedTempFile::new().map_err(|e| format!("failed to create temp file: {}", e))?;
 
-    let response = get(url).await.unwrap();
+    let response = get(url)
+        .await
+        .map_err(|e| format!("failed to download {}: {}", url, e))?;
 
     if response.status().is_success() {
-        let content = response.bytes().await.unwrap();
+        let content = response
+            .bytes()
+            .await
+            .map_err(|e| format!("failed to read response body: {}", e))?;
 
-        tmpfile.write_all(&content).unwrap();
+        tmpfile
+            .write_all(&content)
+            .map_err(|e| format!("failed to write temp file: {}", e))?;
     } else {
-        panic!("Failed to download file: {:?}", response.status());
+        return Err(format!(
+            "failed to download file: HTTP {:?}",
+            response.status()
+        ));
     }
 
-    tmpfile
+    Ok(tmpfile)
 }
 
 pub fn unzip(mut file: &File, base_path: &PathBuf, dir_name: &str) -> Result<(), String> {
@@ -390,7 +412,7 @@ pub fn unzip(mut file: &File, base_path: &PathBuf, dir_name: &str) -> Result<(),
 
 pub async fn install_mod_from_url(url: &str) -> Result<String, String> {
     let dir = dir_name_from_url(url);
-    let temp_file = download_to_tmp(url).await;
+    let temp_file = download_to_tmp(url).await?;
     let file = temp_file.as_file();
 
     let mods_dir = get_balatro_appdata_dir().join("Mods");
@@ -445,7 +467,7 @@ pub async fn install_mod_by_name(name: &str) -> Result<String, String> {
 }
 
 pub async fn reinstall_mod(remote: &RemoteMod, disabled: bool, dir: &str) -> Result<(), String> {
-    let temp_file = download_to_tmp(&remote.download_url).await;
+    let temp_file = download_to_tmp(&remote.download_url).await?;
     let file = temp_file.as_file();
 
     let mods_dir = get_balatro_appdata_dir().join("Mods");
@@ -465,7 +487,17 @@ pub async fn install_lovely() {
 
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     let dll_name: Option<String> = {
-        let file = download_to_tmp("https://github.com/ethangreen-dev/lovely-injector/releases/latest/download/lovely-x86_64-pc-windows-msvc.zip").await;
+        let file = match download_to_tmp(
+            "https://github.com/ethangreen-dev/lovely-injector/releases/latest/download/lovely-x86_64-pc-windows-msvc.zip",
+        )
+        .await
+        {
+            Ok(file) => file,
+            Err(e) => {
+                error!("Failed to download Lovely: {}", e);
+                return;
+            }
+        };
 
         let mut archive = zip::ZipArchive::new(file.as_file()).expect("failed to open zip archive");
 

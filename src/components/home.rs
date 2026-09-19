@@ -175,9 +175,13 @@ impl Component for Home {
                 }
             }
             Action::CatalogFetched(ref mods) => {
-                self.catalog = mods.clone();
-                self.installed_mod_selector.update_catalog(mods.clone());
-                self.remote_mod_selector.update_mods(mods.clone());
+                if mods.is_empty() {
+                    error!("Failed to refresh catalog, keeping cached version");
+                } else {
+                    self.catalog = mods.clone();
+                    self.installed_mod_selector.update_catalog(mods.clone());
+                    self.remote_mod_selector.update_mods(mods.clone());
+                }
             }
             Action::ReinstallMods => {
                 let catalog = self.catalog.clone();

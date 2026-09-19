@@ -2,7 +2,7 @@ use super::{Component, Eventable};
 use balatui::{download_to_tmp, get_balatro_appdata_dir, install_dir, unzip};
 use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent};
-use log::info;
+use log::{error, info};
 use nucleo_matcher::pattern::{CaseMatching, Normalization, Pattern};
 use nucleo_matcher::{Config, Matcher, Utf32Str};
 use ratatui::layout::{Direction, Margin, Spacing};
@@ -161,10 +161,12 @@ impl Component for RemoteModsComponent {
                 self.searchbar.handle_key_event(key)?;
                 self.search(self.searchbar.text.clone());
             }
-            KeyCode::Enter => {
-                let selected_mod = self.displayed_mods[self.options.selected].clone();
-                self.state = State::Downloading(selected_mod);
-            }
+            KeyCode::Enter => match self.displayed_mods.get(self.options.selected) {
+                Some(m) => self.state = State::Downloading(m.clone()),
+                None => {
+                    error!("No mods available to install (catalog is empty)");
+                }
+            },
             _ => {
                 self.options.handle_key_event(key)?;
             }
@@ -181,7 +183,9 @@ impl Component for RemoteModsComponent {
                         let a = act?;
                         match a {
                             Actions::Selected(c) => {
-                                info!("Selected {}", self.displayed_mods[c].identifier.clone());
+                                if let Some(m) = self.displayed_mods.get(c) {
+                                    info!("Selected {}", m.identifier.clone());
+                                }
                             }
                             Actions::Delete(_) => {}
                             Actions::Reload => todo!(),
@@ -196,7 +200,13 @@ impl Component for RemoteModsComponent {
                             remote_mod.name, remote_mod.download_url
                         );
 
-                        let temp_file = download_to_tmp(&*remote_mod.download_url).await;
+                        let temp_file = match download_to_tmp(&*remote_mod.download_url).await {
+                            Ok(f) => f,
+                            Err(e) => {
+                                error!("Failed to download {}: {}", remote_mod.name, e);
+                                return;
+                            }
+                        };
                         let file = temp_file.as_file();
 
                         match unzip(
